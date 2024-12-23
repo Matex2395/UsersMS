@@ -10,6 +10,7 @@ namespace LoginMS.Models
         public int vli_id { get; set; }
         [Required]
         public required string vls_name { get; set; }
-        public string? vls_description { get; set; }
+        [Required]
+        public required string vls_description { get; set; }
     }
 }

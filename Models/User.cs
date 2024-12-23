@@ -12,7 +12,7 @@ namespace LoginMS.Models
         [Required]
         public required string vls_name { get; set; }
         [Required]
-        public required string vls_surname { get; set; }
+        public required string vls_lastname { get; set; }
         [Required]
         [EmailAddress]
         public required string vls_email { get; set; }
