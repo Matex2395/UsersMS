@@ -32,7 +32,7 @@ namespace LoginMS.Data
                         .HasMaxLength(100)
                         .HasColumnName("userEmail");
                     entity.Property(e => e.vls_password)
-                        .HasMaxLength(255) // CONFIRM PASSWORD LENGTH (ENCRYPT)
+                        //.HasMaxLength(50) // CONFIRM PASSWORD LENGTH (ENCRYPT)
                         .HasColumnName("userPassword");
                     entity.Property(e => e.vli_points)
                         .HasDefaultValue(0)
