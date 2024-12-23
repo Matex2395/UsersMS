@@ -1,4 +1,7 @@
-﻿using LoginMS.Data;
+﻿using LoginMS.Custom;
+using LoginMS.Data;
+using LoginMS.Models;
+using LoginMS.Models.DTOs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,9 +17,11 @@ namespace LoginMS.Controllers
     public class UsersController : ControllerBase
     {
         private readonly MSDbContext _msDbContext;
-        public UsersController(MSDbContext mSDbContext)
+        private readonly Utils _utils;
+        public UsersController(MSDbContext mSDbContext, Utils utils)
         {
             _msDbContext = mSDbContext;
+            _utils = utils;
         }
 
         [HttpGet]
@@ -25,6 +30,30 @@ namespace LoginMS.Controllers
         {
             var list = await _msDbContext.Users.ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = list });
+        }
+
+        [HttpPost]
+        [Route("CreateUser")]
+        public async Task<IActionResult> CreateUser(UserDTO user)
+        {
+            var userModel = new User
+            {
+                vls_name = user.vls_name,
+                vls_lastname = user.vls_lastname,
+                vls_email = user.vls_email,
+                vls_password = _utils.encryptSHA256(user.vls_password)
+            };
+            await _msDbContext.Users.AddAsync(userModel);
+            await _msDbContext.SaveChangesAsync();
+
+            if (userModel.vli_id != 0)
+            {
+                return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status200OK, new { isSuccess = false });
+            }
         }
     }
 }
