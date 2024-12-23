@@ -28,16 +28,24 @@ builder.Services.AddAuthentication(config =>
     config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(config =>
 {
+    /* RequireHttpsMetadata sets the API to only get HTTPS-based Tokens 
+     If "true", the API will reject any token request sent via HTTP without HTTPS
+        - Suitable for Production environments.
+     If "false", the API will accept any token request":
+        - Suitable for Development environments*/
     config.RequireHttpsMetadata = false;
+
     config.SaveToken = true;
     config.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
 
-        /* ValidateIssuer allows or prohibits external apps to access this API URL when published */
+        /* ValidateIssuer allows or prohibits external apps to access this API URL when published 
+            - Use "true" for Production environments (Better Security)*/
         ValidateIssuer = false, // No access from external apps
 
-        /* We can specify which systems (Apps, Server) can access this API URL */
+        /* We can specify which systems (Apps, Server) can access this API URL 
+            - Use "true" for Production environments (Better Security)*/
         ValidateAudience = false, // No access from external apps (It can be configured)
 
         /* Use time limit validation for Token Lifetime and Clock-related specifications */
