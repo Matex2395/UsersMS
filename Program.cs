@@ -57,6 +57,15 @@ builder.Services.AddAuthentication(config =>
     };
 });
 
+// Enable Cors Policy to prevent execution blocking
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NewPolicy", app =>
+    {
+        app.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -67,6 +76,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("NewPolicy");
 
 app.UseAuthentication();
 
