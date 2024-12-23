@@ -21,7 +21,9 @@ namespace LoginMS.Data
                 {
                     entity.HasKey(e => e.vli_id);
 
-                    entity.Property(e => e.vli_id).HasColumnName("usersID");
+                    entity.Property(e => e.vli_id)
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("usersID");
                     entity.Property(e => e.vls_name)
                         .HasMaxLength(50)
                         .HasColumnName("userName");
@@ -72,7 +74,9 @@ namespace LoginMS.Data
                 {
                     entity.HasKey(e => e.vli_id);
 
-                    entity.Property(e => e.vli_id).HasColumnName("rolID");
+                    entity.Property(e => e.vli_id)
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("rolID");
                     entity.Property(e => e.vls_name)
                         .HasMaxLength(50)
                         .HasColumnName("rolName");
