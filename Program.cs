@@ -5,14 +5,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using LoginMS.Custom;
 using LoginMS.Models;
-using LoginMS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddFluentEmail(builder.Configuration);
-builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
