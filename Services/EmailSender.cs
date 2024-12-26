@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Identity.Client;
 using System.Net;
 using System.Net.Mail;
 
@@ -6,23 +7,33 @@ namespace LoginMS.Services
 {
     public class EmailSender : IEmailSender
     {
-        public Task SendEmailAsync(string email, string subject, string message)
-        {
-            var mail = "mateo.rosero@fisagrp.com";
-            var pw = "W8lS#JKMjN7ifd&1";
+        private readonly IConfiguration _configuration;
 
-            var client = new SmtpClient("smtp-mail.outlook.com", 587)
+        public EmailSender(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public async Task SendVerificationCodeAsync(string email, string code)
+        {
+            using var smtpClient = new SmtpClient(_configuration["Email:SmtpServer"])
             {
+                Port = int.Parse(_configuration["Email:Port"]!),
+                Credentials = new NetworkCredential(_configuration["Email:Username"],
+                                                    _configuration["Email:Password"]),
                 EnableSsl = true,
-                Credentials = new NetworkCredential(mail, pw)
             };
 
-            return client.SendMailAsync(
-                new MailMessage(from: mail,
-                                to: email,
-                                subject,
-                                message
-                                ));
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_configuration["Email:Username"]!),
+                Subject = "Código de Verificación",
+                Body = $"Tu código de verificación es: {code}",
+                IsBodyHtml = false
+            };
+            mailMessage.To.Add(email);
+
+            await smtpClient.SendMailAsync(mailMessage);
         }
     }
 }

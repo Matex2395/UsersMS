@@ -6,6 +6,7 @@ using LoginMS.Models;
 using LoginMS.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using LoginMS.Data;
+using LoginMS.Services;
 
 namespace LoginMS.Controllers
 {
@@ -16,31 +17,76 @@ namespace LoginMS.Controllers
     {
         private readonly MSDbContext _msDbContext;
         private readonly Utils _utils;
-        public AccessController(MSDbContext msDbContext, Utils utils)
+        private readonly IEmailSender _emailSender;
+        private readonly IVerificationService _verificationService;
+
+        public AccessController(
+            MSDbContext msDbContext, 
+            Utils utils,
+            IEmailSender emailSender,
+            IVerificationService verificationService)
         {
             _msDbContext = msDbContext;
             _utils = utils;
+            _emailSender = emailSender;
+            _verificationService = verificationService;
+        }
+
+
+        [HttpPost]
+        [Route("IniciateLogin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IniciateLogin(LoginDTO model)
+        {
+            // Search for User
+            var user = await _msDbContext.Users
+            .FirstOrDefaultAsync(u =>
+                u.vls_email == model.vls_email &&
+                u.vls_password == _utils.encryptSHA256(model.vls_password));
+
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    new { message = "Credenciales inválidas" });
+            }
+
+            // Generate and store verification code
+            var verificationCode = _verificationService.GenerateCode();
+            await _verificationService.StoreVerificationCodeAsync(model.vls_email, verificationCode);
+
+            // Send code via email
+            await _emailSender.SendVerificationCodeAsync(model.vls_email, verificationCode);
+
+            return Ok(new { message = "Código de verificación enviado" });
         }
 
         [HttpPost]
-        [Route("Login")]
-        public async Task<IActionResult> Login(LoginDTO model)
+        [Route("VerifyCode")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyCode(VerificationDTO model)
         {
-            // Search for User
-            var foundUser = await _msDbContext.Users
-                                    .Where(u =>
-                                        u.vls_email == model.vls_email &&
-                                        u.vls_password == _utils.encryptSHA256(model.vls_password)
-                                    ).FirstOrDefaultAsync();
+            // Validate the code
+            bool isValid = await _verificationService.ValidateCodeAsync(model.vls_email, model.vls_code);
 
-            if (foundUser == null)
+            if (!isValid)
             {
-                return StatusCode(StatusCodes.Status200OK, new { isSuccess = false, token = "" });
+                return BadRequest(new { message = "Código inválido o expirado" });
             }
-            else
+
+            // Search for User and Generate JWT
+            var user = await _msDbContext.Users
+                .FirstOrDefaultAsync(u => u.vls_email == model.vls_email);
+
+            if (user == null)
             {
-                return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = _utils.generateJWT(foundUser) });
+                return BadRequest(new { message = "Usuario no encontrado" });
             }
+
+            return Ok(new
+            {
+                isSuccess = true,
+                token = _utils.generateJWT(user)
+            });
         }
     }
 }
