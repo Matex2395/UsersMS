@@ -14,7 +14,7 @@ namespace LoginMS.Services
             _configuration = configuration;
         }
 
-        public async Task SendVerificationCodeAsync(string email, string code)
+        public async Task SendPasswordResetCodeAsync(string email, string code)
         {
             using var smtpClient = new SmtpClient(_configuration["Email:SmtpServer"])
             {
@@ -27,9 +27,14 @@ namespace LoginMS.Services
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(_configuration["Email:Username"]!),
-                Subject = "Código de Verificación",
-                Body = $"Tu código de verificación es: {code}",
-                IsBodyHtml = false
+                Subject = "Código para Restablecer tu Contraseña",
+                Body = $@"
+                        <h2>Restablecimiento de Contraseña</h2>
+                        <p>Has solicitado restablecer tu contraseña.</p>
+                        <p>Tu código de verificación es: <strong>{code}</strong></p>
+                        <p>Este código expirará en 5 minutos.</p>
+                        <p>Si no solicitaste este cambio, ignora este correo.</p>",
+                IsBodyHtml = true
             };
             mailMessage.To.Add(email);
 

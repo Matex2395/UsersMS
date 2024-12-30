@@ -1,9 +1,9 @@
 ﻿namespace LoginMS.Services
 {
-    public interface IVerificationService
+    public interface IPasswordResetService
     {
         string GenerateCode();
         Task StoreVerificationCodeAsync(string email, string code);
-        Task<bool> ValidateCodeAsync(string email, string code);
+        Task<bool> ValidateVerificationCodeAsync(string email, string code);
     }
 }

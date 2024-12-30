@@ -3,13 +3,13 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace LoginMS.Services
 {
-    public class VerificationService : IVerificationService
+    public class PasswordResetService : IPasswordResetService
     {
         private readonly IDistributedCache _cache;
         private const int CODE_LENGTH = 4;
         private const int CODE_EXPIRATION_MINUTES = 5;
 
-        public VerificationService(IDistributedCache cache)
+        public PasswordResetService(IDistributedCache cache)
         {
             _cache = cache;
         }
@@ -27,13 +27,23 @@ namespace LoginMS.Services
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CODE_EXPIRATION_MINUTES)
             };
 
-            await _cache.SetStringAsync(email, code, options);
+            await _cache.SetStringAsync($"pwd_reset_{email}", code, options);
         }
 
-        public async Task<bool> ValidateCodeAsync(string email, string code)
+        public async Task<bool> ValidateVerificationCodeAsync(string email, string code)
         {
-            var storedCode = await _cache.GetStringAsync(email);
-            return storedCode == code;
+            // Retrieve and validate the stored code
+            var storedCode = await _cache.GetStringAsync($"pwd_reset_{email}");
+            if (storedCode == null) return false;
+
+            // If the code is valid, we eliminate it immediately for avoiding reusage
+            if (storedCode == code)
+            {
+                await _cache.RemoveAsync($"pwd_reset_{email}");
+                return true;
+            }
+
+            return false;
         }
     }
 }
