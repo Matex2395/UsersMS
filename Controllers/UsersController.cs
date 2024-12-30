@@ -55,5 +55,45 @@ namespace LoginMS.Controllers
                 return StatusCode(StatusCodes.Status200OK, new { isSuccess = false });
             }
         }
+
+        [HttpPut]
+        [Route("EditUser")]
+        public async Task<IActionResult> EditUser(int id, UserDTO user)
+        {
+            var existingUser = await _msDbContext.Users.FindAsync(id);
+            if (existingUser == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { message = "User not found" });
+            }
+
+            existingUser.vls_name = user.vls_name;
+            existingUser.vls_lastname = user.vls_lastname;
+            existingUser.vls_email = user.vls_email;
+            if (!string.IsNullOrEmpty(user.vls_password))
+            {
+                existingUser.vls_password = _utils.encryptSHA256(user.vls_password);
+            }
+
+            _msDbContext.Users.Update(existingUser);
+            await _msDbContext.SaveChangesAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
+        }
+
+        [HttpDelete]
+        [Route("DeleteUser")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var existingUser = await _msDbContext.Users.FindAsync(id);
+            if (existingUser == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { message = "User not found" });
+            }
+
+            _msDbContext.Users.Remove(existingUser);
+            await _msDbContext.SaveChangesAsync();
+
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
+        }
     }
 }
