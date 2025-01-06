@@ -12,7 +12,7 @@ namespace LoginMS.Controllers
 {
     [Route("api/[controller]")]
     //Define Authentication type. In this case, it's not necessary.
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "AdministradorOnly")]
     [ApiController]
     public class UsersController : ControllerBase
     {
