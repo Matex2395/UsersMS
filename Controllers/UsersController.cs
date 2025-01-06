@@ -95,43 +95,5 @@ namespace LoginMS.Controllers
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
         }
-
-        [HttpPost]
-        [Route("CreateRoles")]
-        public async Task<IActionResult> CreateRoles()
-        {
-            var AdminRolModel = new TfaRol
-            {
-                RolName = "Administrador",
-                RolDescription = "Rol que tiene acceso a todas las funciones del sistema"
-            };
-            await _appDbContext.TfaRols.AddAsync(AdminRolModel);
-            await _appDbContext.SaveChangesAsync();
-
-            var LeaderRolModel = new TfaRol
-            {
-                RolName = "Lider",
-                RolDescription = "Rol que puede completar tareas, otorgar diplomas a colaboradores y generar reportes"
-            };
-            await _appDbContext.TfaRols.AddAsync(LeaderRolModel);
-            await _appDbContext.SaveChangesAsync();
-
-            var ColaboratorRolModel = new TfaRol
-            {
-                RolName = "Colaborador",
-                RolDescription = "Rol que puede completar tareas y recibir diplomas"
-            };
-            await _appDbContext.TfaRols.AddAsync(ColaboratorRolModel);
-            await _appDbContext.SaveChangesAsync();
-
-            if (AdminRolModel.RolId != 0 || LeaderRolModel.RolId != 0 || ColaboratorRolModel.RolId != 0)
-            {
-                return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
-            }
-            else
-            {
-                return StatusCode(StatusCodes.Status200OK, new { isSuccess = false });
-            }
-        }
     }
 }
