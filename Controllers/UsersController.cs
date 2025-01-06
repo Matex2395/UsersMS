@@ -16,11 +16,11 @@ namespace LoginMS.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly MSDbContext _msDbContext;
+        private readonly AppDbContext _appDbContext;
         private readonly Utils _utils;
-        public UsersController(MSDbContext mSDbContext, Utils utils)
+        public UsersController(AppDbContext appDbContext, Utils utils)
         {
-            _msDbContext = mSDbContext;
+            _appDbContext = appDbContext;
             _utils = utils;
         }
 
@@ -28,7 +28,7 @@ namespace LoginMS.Controllers
         [Route("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
-            var list = await _msDbContext.Users.ToListAsync();
+            var list = await _appDbContext.TfaUsers.ToListAsync();
             return StatusCode(StatusCodes.Status200OK, new { value = list });
         }
 
@@ -36,17 +36,17 @@ namespace LoginMS.Controllers
         [Route("CreateUser")]
         public async Task<IActionResult> CreateUser(UserDTO user)
         {
-            var userModel = new User
+            var userModel = new TfaUser
             {
-                vls_name = user.vls_name,
-                vls_lastname = user.vls_lastname,
-                vls_email = user.vls_email,
-                vls_password = _utils.encryptSHA256(user.vls_password)
+                UserName = user.vls_name,
+                UserLastName = user.vls_lastname,
+                UserEmail = user.vls_email,
+                Contrasenia = _utils.encryptSHA256(user.vls_password)
             };
-            await _msDbContext.Users.AddAsync(userModel);
-            await _msDbContext.SaveChangesAsync();
+            await _appDbContext.TfaUsers.AddAsync(userModel);
+            await _appDbContext.SaveChangesAsync();
 
-            if (userModel.vli_id != 0)
+            if (userModel.UsersId != 0)
             {
                 return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
             }
@@ -60,22 +60,22 @@ namespace LoginMS.Controllers
         [Route("EditUser")]
         public async Task<IActionResult> EditUser(int id, UserDTO user)
         {
-            var existingUser = await _msDbContext.Users.FindAsync(id);
+            var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
             if (existingUser == null)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new { message = "User not found" });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = "Usuario No Encontrado" });
             }
 
-            existingUser.vls_name = user.vls_name;
-            existingUser.vls_lastname = user.vls_lastname;
-            existingUser.vls_email = user.vls_email;
+            existingUser.UserName = user.vls_name;
+            existingUser.UserLastName = user.vls_lastname;
+            existingUser.UserEmail = user.vls_email;
             if (!string.IsNullOrEmpty(user.vls_password))
             {
-                existingUser.vls_password = _utils.encryptSHA256(user.vls_password);
+                existingUser.Contrasenia = _utils.encryptSHA256(user.vls_password);
             }
 
-            _msDbContext.Users.Update(existingUser);
-            await _msDbContext.SaveChangesAsync();
+            _appDbContext.TfaUsers.Update(existingUser);
+            await _appDbContext.SaveChangesAsync();
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
         }
@@ -84,14 +84,14 @@ namespace LoginMS.Controllers
         [Route("DeleteUser")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var existingUser = await _msDbContext.Users.FindAsync(id);
+            var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
             if (existingUser == null)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new { message = "User not found" });
+                return StatusCode(StatusCodes.Status404NotFound, new { message = "Usuario No Encontrado" });
             }
 
-            _msDbContext.Users.Remove(existingUser);
-            await _msDbContext.SaveChangesAsync();
+            _appDbContext.TfaUsers.Remove(existingUser);
+            await _appDbContext.SaveChangesAsync();
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
         }
