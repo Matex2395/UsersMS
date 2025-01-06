@@ -33,17 +33,17 @@ namespace LoginMS.Custom
             }
         }
 
-        public string generateJWT(User model)
+        public string generateJWT(TfaUser model)
         {
             // Create user info for the Token
             var userClaims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, model.vli_id.ToString()),
-                new Claim(ClaimTypes.Name, model.vls_name),
-                new Claim(ClaimTypes.Surname, model.vls_lastname),
-                new Claim(ClaimTypes.Email, model.vls_email),
-                new Claim(ClaimTypes.Role, model.vli_role.ToString()!),
-                new Claim(ClaimTypes.Role, model.vli_extrarole.ToString()!)
+                new Claim(ClaimTypes.NameIdentifier, model.UsersId.ToString()),
+                new Claim(ClaimTypes.Name, model.UserName),
+                new Claim(ClaimTypes.Surname, model.UserLastName),
+                new Claim(ClaimTypes.Email, model.UserEmail),
+                new Claim(ClaimTypes.Role, model.RolId.ToString()!),
+                new Claim(ClaimTypes.Role, model.RolIdaddional.ToString()!)
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:key"]!));
