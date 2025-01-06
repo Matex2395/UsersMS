@@ -15,18 +15,18 @@ namespace LoginMS.Controllers
     [ApiController]
     public class AccessController : ControllerBase
     {
-        private readonly MSDbContext _msDbContext;
+        private readonly AppDbContext _appDbContext;
         private readonly Utils _utils;
         private readonly IEmailSender _emailService;
         private readonly IPasswordResetService _passwordResetService;
 
         public AccessController(
-            MSDbContext msDbContext,
+            AppDbContext appDbContext,
             Utils utils,
             IEmailSender emailSender,
             IPasswordResetService passwordResetService)
         {
-            _msDbContext = msDbContext;
+            _appDbContext = appDbContext;
             _utils = utils;
             _emailService = emailSender;
             _passwordResetService = passwordResetService;
@@ -38,10 +38,10 @@ namespace LoginMS.Controllers
         public async Task<IActionResult> Login(LoginDTO model)
         {
             // Search for User
-            var foundUser = await _msDbContext.Users
+            var foundUser = await _appDbContext.TfaUsers
                                     .Where(u =>
-                                        u.vls_email == model.vls_email &&
-                                        u.vls_password == _utils.encryptSHA256(model.vls_password)
+                                        u.UserEmail == model.vls_email &&
+                                        u.Contrasenia == _utils.encryptSHA256(model.vls_password)
                                     ).FirstOrDefaultAsync();
 
             if (foundUser == null)
@@ -58,8 +58,8 @@ namespace LoginMS.Controllers
         public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetDTO request)
         {
             // Verify if the user exists or not
-            var user = await _msDbContext.Users
-                .FirstOrDefaultAsync(u => u.vls_email == request.vls_email);
+            var user = await _appDbContext.TfaUsers
+                .FirstOrDefaultAsync(u => u.UserEmail == request.vls_email);
 
             if (user == null)
             {
@@ -100,8 +100,8 @@ namespace LoginMS.Controllers
             }
 
             // Search for User
-            var user = await _msDbContext.Users
-                .FirstOrDefaultAsync(u => u.vls_email == request.vls_email);
+            var user = await _appDbContext.TfaUsers
+                .FirstOrDefaultAsync(u => u.UserEmail == request.vls_email);
 
             if (user == null)
             {
@@ -109,8 +109,8 @@ namespace LoginMS.Controllers
             }
 
             // Update password
-            user.vls_password = _utils.encryptSHA256(request.vls_newpassword);
-            await _msDbContext.SaveChangesAsync();
+            user.Contrasenia = _utils.encryptSHA256(request.vls_newpassword);
+            await _appDbContext.SaveChangesAsync();
 
             return Ok(new
             {

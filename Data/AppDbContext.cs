@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using LoginMS.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LoginMS.Models;
+namespace LoginMS.Data;
 
-public partial class DbAb0bdeTalentseedsContext : DbContext
+public partial class AppDbContext : DbContext
 {
-    public DbAb0bdeTalentseedsContext()
+    public AppDbContext()
     {
     }
 
-    public DbAb0bdeTalentseedsContext(DbContextOptions<DbAb0bdeTalentseedsContext> options)
+    public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
