@@ -11,11 +11,9 @@ namespace LoginMS.Custom
     public class Utils
     {
         private readonly IConfiguration _configuration;
-        private readonly AppDbContext _appDbContext;
-        public Utils(IConfiguration configuration, AppDbContext appDbContext)
+        public Utils(IConfiguration configuration)
         {
             _configuration = configuration;
-            _appDbContext = appDbContext;
         }
 
         // Encrypting method
@@ -38,33 +36,16 @@ namespace LoginMS.Custom
 
         public string generateJWT(TfaUser model)
         {
-            // Search for Role
-            var userRole = _appDbContext.TfaRols.Where(u => u.RolId == model.RolId).FirstOrDefault();
-
-            // Search for Extra Role
-            var userExtraRole = _appDbContext.TfaRols.Where(u => u.RolId == model.RolIdaddional).FirstOrDefault();
-
             // Create user info for the Token
             var userClaims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, model.UsersId.ToString()),
                 new Claim(ClaimTypes.Name, model.UserName),
                 new Claim(ClaimTypes.Surname, model.UserLastName),
-                new Claim(ClaimTypes.Email, model.UserEmail)
+                new Claim(ClaimTypes.Email, model.UserEmail),
+                new Claim(ClaimTypes.Role, model.RolId.ToString()!),
+                new Claim(ClaimTypes.Role, model.RolIdaddional.ToString()!)
             };
-
-            // Add primary role claim
-            if (userRole != null)
-            {
-                userClaims.Add(new Claim(ClaimTypes.Role, userRole.RolName));
-            }
-
-            // Add extra role claim if it exists
-            if (userExtraRole != null)
-            {
-                userClaims.Add(new Claim(ClaimTypes.Role, userExtraRole.RolName));
-            }
-
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 

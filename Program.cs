@@ -62,13 +62,6 @@ builder.Services.AddAuthentication(config =>
     };
 });
 
-// Admin Only Authorization Policy
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdministradorOnly", policy =>
-        policy.RequireClaim("role", "Administrador")); // Verify the "role" Claim
-});
-
 // Enable Cors Policy to prevent execution blocking
 builder.Services.AddCors(options =>
 {
