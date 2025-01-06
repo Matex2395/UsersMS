@@ -36,12 +36,25 @@ namespace LoginMS.Controllers
         [Route("CreateUser")]
         public async Task<IActionResult> CreateUser(UserDTO user)
         {
+            // Search for Role
+            var userRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_role).FirstOrDefaultAsync();
+            if (userRole == null)
+            {
+                return NotFound(new { isSuccess = false, message = "Rol no encontrado." });
+            }
+
+            // Search for Extra Role
+            var userExtraRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_extrarole).FirstOrDefaultAsync();
+
+            // Create User
             var userModel = new TfaUser
             {
                 UserName = user.vls_name,
                 UserLastName = user.vls_lastname,
                 UserEmail = user.vls_email,
-                Contrasenia = _utils.encryptSHA256(user.vls_password)
+                Contrasenia = _utils.encryptSHA256(user.vls_password),
+                RolId = userRole.RolId,
+                RolIdaddional = userExtraRole?.RolId
             };
             await _appDbContext.TfaUsers.AddAsync(userModel);
             await _appDbContext.SaveChangesAsync();

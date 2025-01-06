@@ -11,11 +11,7 @@ namespace LoginMS.Models.DTOs
         public required string vls_email { get; set; }
         public required string vls_password { get; set; }
         public int vli_points { get; set; } = 0;
-
-        // Navigation 
-        public int? vli_role { get; set; }
-        public Role? vlo_role { get; set; }
-        public int? vli_extrarole { get; set; }
-        public Role? vlo_extrarole { get; set; }
+        public required string vls_role { get; set; }
+        public string? vls_extrarole { get; set; }
     }
 }
