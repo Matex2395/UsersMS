@@ -48,10 +48,29 @@ namespace LoginMS.Controllers
             {
                 return StatusCode(StatusCodes.Status200OK, new { isSuccess = false, token = "" });
             }
-            else
+
+            // Generate JWT
+            var token = _utils.generateJWT(foundUser);
+
+            // Store JWT in a Cookie
+            Response.Cookies.Append("AuthToken", token, new CookieOptions
             {
-                return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token = _utils.generateJWT(foundUser) });
-            }
+                HttpOnly = true,
+                Secure = false, // Use "true" in Production
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddMinutes(10)
+            });
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token });
+        }
+
+        [HttpPost]
+        [Route("Logout")]
+        public IActionResult Logout()
+        {
+            // Remove the AuthToken cookie
+            Response.Cookies.Delete("AuthToken");
+
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, message = "Sesión cerrada correctamente." });
         }
 
         [HttpPost("RequestReset")]

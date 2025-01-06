@@ -60,6 +60,12 @@ builder.Services.AddAuthentication(config =>
         IssuerSigningKey = new SymmetricSecurityKey
         (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:key"]!))
     };
+}).AddCookie(config =>
+{
+    config.Cookie.HttpOnly = true;
+    config.Cookie.SecurePolicy = CookieSecurePolicy.None; // Use Always in Production
+    config.Cookie.SameSite = SameSiteMode.Strict;
+    config.Cookie.Name = "AuthToken";
 });
 
 // Enable Cors Policy to prevent execution blocking
