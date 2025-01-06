@@ -73,15 +73,28 @@ namespace LoginMS.Controllers
         [Route("EditUser")]
         public async Task<IActionResult> EditUser(int id, UserDTO user)
         {
+            // Search for User
             var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
             if (existingUser == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new { message = "Usuario No Encontrado" });
             }
 
+            // Search for Role
+            var userRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_role).FirstOrDefaultAsync();
+            if (userRole == null)
+            {
+                return NotFound(new { isSuccess = false, message = "Rol no encontrado." });
+            }
+
+            // Search for Extra Role
+            var userExtraRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_extrarole).FirstOrDefaultAsync();
+
             existingUser.UserName = user.vls_name;
             existingUser.UserLastName = user.vls_lastname;
             existingUser.UserEmail = user.vls_email;
+            existingUser.RolId = userRole.RolId;
+            existingUser.RolIdaddional = userExtraRole?.RolId;
             if (!string.IsNullOrEmpty(user.vls_password))
             {
                 existingUser.Contrasenia = _utils.encryptSHA256(user.vls_password);
