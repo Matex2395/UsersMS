@@ -5,15 +5,18 @@ using System.Security.Cryptography;
 using System.Text;
 using LoginMS.Models;
 using LoginMS.Data;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace LoginMS.Custom
 {
     public class Utils
     {
         private readonly IConfiguration _configuration;
-        public Utils(IConfiguration configuration)
+        private readonly IDistributedCache _cache;
+        public Utils(IConfiguration configuration, IDistributedCache cache)
         {
             _configuration = configuration;
+            _cache = cache;
         }
 
         // Encrypting method
@@ -36,6 +39,16 @@ namespace LoginMS.Custom
 
         public string generateJWT(TfaUser model)
         {
+            // Generate new Session ID
+            var sessionId = Guid.NewGuid().ToString();
+            Console.WriteLine($"Generated SessionId: {sessionId}");
+
+            // Store Session ID in caché
+            _cache.SetString($"active_session_{sessionId}", "active", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+            });
+
             // Create user info for the Token
             var userClaims = new List<Claim>
             {
@@ -44,7 +57,9 @@ namespace LoginMS.Custom
                 new Claim(ClaimTypes.Surname, model.UserLastName),
                 new Claim(ClaimTypes.Email, model.UserEmail),
                 new Claim(ClaimTypes.Role, model.RolId.ToString()!),
-                new Claim(ClaimTypes.Role, model.RolIdaddional.ToString()!)
+                new Claim(ClaimTypes.Role, model.RolIdaddional.ToString()!),
+                new Claim("SessionId", sessionId),
+                new Claim("Timestamp", DateTime.UtcNow.ToString("o"))
             };
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);

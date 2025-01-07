@@ -7,6 +7,9 @@ using LoginMS.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using LoginMS.Data;
 using LoginMS.Services;
+using Microsoft.Extensions.Caching.Distributed;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace LoginMS.Controllers
 {
@@ -16,17 +19,20 @@ namespace LoginMS.Controllers
     public class AccessController : ControllerBase
     {
         private readonly AppDbContext _appDbContext;
+        private readonly IDistributedCache _cache;
         private readonly Utils _utils;
         private readonly IEmailSender _emailService;
         private readonly IPasswordResetService _passwordResetService;
 
         public AccessController(
             AppDbContext appDbContext,
+            IDistributedCache cache,
             Utils utils,
             IEmailSender emailSender,
             IPasswordResetService passwordResetService)
         {
             _appDbContext = appDbContext;
+            _cache = cache;
             _utils = utils;
             _emailService = emailSender;
             _passwordResetService = passwordResetService;
@@ -51,6 +57,7 @@ namespace LoginMS.Controllers
 
             // Generate JWT
             var token = _utils.generateJWT(foundUser);
+            Console.WriteLine($"Generated Token: {token}");
 
             // Store JWT in a Cookie
             Response.Cookies.Append("AuthToken", token, new CookieOptions
@@ -65,12 +72,24 @@ namespace LoginMS.Controllers
 
         [HttpPost]
         [Route("Logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            // Remove the AuthToken cookie
-            Response.Cookies.Delete("AuthToken");
+            var token = Request.Cookies["AuthToken"];
+            if (token == null)
+                return StatusCode(StatusCodes.Status401Unauthorized);
 
-            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, message = "Sesión cerrada correctamente." });
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+            var userIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+            if (userIdClaim != null)
+            {
+                var cacheKey = $"active_session_{userIdClaim.Value}";
+                await _cache.RemoveAsync(cacheKey);
+            }
+
+            Response.Cookies.Delete("AuthToken");
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
         }
 
         [HttpPost("RequestReset")]
@@ -135,6 +154,39 @@ namespace LoginMS.Controllers
             {
                 message = "Contraseña actualizada exitosamente."
             });
+        }
+
+        [HttpPost]
+        [Route("SetCache")]
+        public async Task<IActionResult> SetCache()
+        {
+            // Crear un valor para almacenar en caché
+            var sessionId = Guid.NewGuid().ToString();
+            var cacheKey = $"active_session_{sessionId}";
+
+            // Almacenar en caché (por 10 minutos)
+            await _cache.SetStringAsync(cacheKey, "active", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+            });
+
+            return Ok(new { Message = "Session stored in cache", SessionId = sessionId });
+        }
+
+        [HttpGet]
+        [Route("GetCache/{sessionId}")]
+        public async Task<IActionResult> GetCache(string sessionId)
+        {
+            // Recuperar valor desde caché
+            var cacheKey = $"active_session_{sessionId}";
+            var value = await _cache.GetStringAsync(cacheKey);
+
+            if (value == null)
+            {
+                return NotFound(new { Message = "Session not found in cache" });
+            }
+
+            return Ok(new { SessionId = sessionId, Status = value });
         }
     }
 }
