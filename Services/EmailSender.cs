@@ -1,5 +1,7 @@
 ﻿
 using Microsoft.Identity.Client;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System.Net;
 using System.Net.Mail;
 
@@ -16,29 +18,18 @@ namespace LoginMS.Services
 
         public async Task SendPasswordResetCodeAsync(string email, string code)
         {
-            using var smtpClient = new SmtpClient(_configuration["Email:SmtpServer"])
-            {
-                Port = int.Parse(_configuration["Email:Port"]!),
-                Credentials = new NetworkCredential(_configuration["Email:Username"],
-                                                    _configuration["Email:Password"]),
-                EnableSsl = true,
-            };
-
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress(_configuration["Email:Username"]!),
-                Subject = "Código para Restablecer tu Contraseña",
-                Body = $@"
-                        <h2>Restablecimiento de Contraseña</h2>
-                        <p>Has solicitado restablecer tu contraseña.</p>
-                        <p>Tu código de verificación es: <strong>{code}</strong></p>
-                        <p>Este código expirará en 5 minutos.</p>
-                        <p>Si no solicitaste este cambio, ignora este correo.</p>",
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(email);
-
-            await smtpClient.SendMailAsync(mailMessage);
+            var client = new SendGridClient("tu_api_key");
+            var from = new EmailAddress("elmatex9@gmail.com", "Mateo");
+            var subject = "Código para Restablecer tu Contraseña";
+            var to = new EmailAddress(email);
+            var htmlContent = $@"
+                            <h2>Restablecimiento de Contraseña</h2>
+                            <p>Has solicitado restablecer tu contraseña.</p>
+                            <p>Tu código de verificación es: <strong>{code}</strong></p>
+                            <p>Este código expirará en 5 minutos.</p>
+                            <p>Si no solicitaste este cambio, ignora este correo.</p>";
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, null, htmlContent);
+            await client.SendEmailAsync(msg);
         }
     }
 }
