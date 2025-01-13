@@ -56,8 +56,9 @@ namespace LoginMS.Controllers
             }
 
             // Generate JWT
-            var token = _utils.generateJWT(foundUser);
-            Console.WriteLine($"Generated Token: {token}");
+            var mainRole = await _appDbContext.TfaRols.Where(r => r.RolId == foundUser.RolId).FirstOrDefaultAsync();
+            var extraRole = await _appDbContext.TfaRols.Where(r => r.RolId == foundUser.RolIdaddional).FirstOrDefaultAsync();
+            var token = _utils.generateJWT(foundUser, mainRole?.RolName, extraRole?.RolName);
 
             // Store JWT in a Cookie
             Response.Cookies.Append("AuthToken", token, new CookieOptions
@@ -154,39 +155,6 @@ namespace LoginMS.Controllers
             {
                 message = "Contraseña actualizada exitosamente."
             });
-        }
-
-        [HttpPost]
-        [Route("SetCache")]
-        public async Task<IActionResult> SetCache()
-        {
-            // Crear un valor para almacenar en caché
-            var sessionId = Guid.NewGuid().ToString();
-            var cacheKey = $"active_session_{sessionId}";
-
-            // Almacenar en caché (por 10 minutos)
-            await _cache.SetStringAsync(cacheKey, "active", new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-            });
-
-            return Ok(new { Message = "Session stored in cache", SessionId = sessionId });
-        }
-
-        [HttpGet]
-        [Route("GetCache/{sessionId}")]
-        public async Task<IActionResult> GetCache(string sessionId)
-        {
-            // Recuperar valor desde caché
-            var cacheKey = $"active_session_{sessionId}";
-            var value = await _cache.GetStringAsync(cacheKey);
-
-            if (value == null)
-            {
-                return NotFound(new { Message = "Session not found in cache" });
-            }
-
-            return Ok(new { SessionId = sessionId, Status = value });
         }
     }
 }
