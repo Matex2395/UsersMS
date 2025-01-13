@@ -13,10 +13,12 @@ namespace LoginMS.Custom
     {
         private readonly IConfiguration _configuration;
         private readonly IDistributedCache _cache;
-        public Utils(IConfiguration configuration, IDistributedCache cache)
+        private readonly AppDbContext _appDbContext;
+        public Utils(IConfiguration configuration, IDistributedCache cache, AppDbContext appDbContext)
         {
             _configuration = configuration;
             _cache = cache;
+            _appDbContext = appDbContext;
         }
 
         // Encrypting method
@@ -49,6 +51,9 @@ namespace LoginMS.Custom
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
             });
 
+            var mainRole = _appDbContext.TfaRols.Where(r => r.RolId == model.RolId).FirstOrDefault();
+            var extraRole = _appDbContext.TfaRols.Where(r => r.RolId == model.RolIdaddional).FirstOrDefault();
+
             // Create user info for the Token
             var userClaims = new List<Claim>
             {
@@ -56,8 +61,8 @@ namespace LoginMS.Custom
                 new Claim(ClaimTypes.Name, model.UserName),
                 new Claim(ClaimTypes.Surname, model.UserLastName),
                 new Claim(ClaimTypes.Email, model.UserEmail),
-                new Claim(ClaimTypes.Role, model.RolId.ToString()!),
-                new Claim(ClaimTypes.Role, model.RolIdaddional.ToString()!),
+                new Claim(ClaimTypes.Role, mainRole!.RolName),
+                new Claim(ClaimTypes.Role, extraRole!.RolName),
                 new Claim("SessionId", sessionId),
                 new Claim("Timestamp", DateTime.UtcNow.ToString("o"))
             };
