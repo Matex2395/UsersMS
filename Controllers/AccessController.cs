@@ -66,7 +66,7 @@ namespace LoginMS.Controllers
                 HttpOnly = true,
                 Secure = false, // Use "true" in Production
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddMinutes(10)
+                Expires = DateTime.UtcNow.AddHours(24)
             });
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, token });
         }

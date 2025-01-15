@@ -46,7 +46,7 @@ namespace LoginMS.Custom
             // Store Session ID in caché
             _cache.SetString($"active_session_{sessionId}", "active", new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
             });
 
             // Create user info for the Token
@@ -67,7 +67,7 @@ namespace LoginMS.Custom
             // Create Token details
             var jwtConfig = new JwtSecurityToken(
                 claims: userClaims,
-                expires: DateTime.UtcNow.AddMinutes(10),
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: credentials
             );
 
