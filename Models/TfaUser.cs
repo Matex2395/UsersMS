@@ -21,6 +21,8 @@ public partial class TfaUser
 
     public string Contrasenia { get; set; } = null!;
 
+    public string? UrlImage { get; set; }
+
     public virtual TfaRol? Rol { get; set; }
 
     public virtual TfaRol? RolIdaddionalNavigation { get; set; }

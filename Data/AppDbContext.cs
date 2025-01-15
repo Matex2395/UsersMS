@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using LoginMS.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LoginMS.Data;
+namespace LoginMS.Models;
 
 public partial class AppDbContext : DbContext
 {
@@ -19,9 +18,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<TfaRol> TfaRols { get; set; }
 
     public virtual DbSet<TfaUser> TfaUsers { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConStr");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +52,10 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("contrasenia");
             entity.Property(e => e.RolId).HasColumnName("rolID");
             entity.Property(e => e.RolIdaddional).HasColumnName("rolIDAddional");
+            entity.Property(e => e.UrlImage)
+                .HasMaxLength(999)
+                .IsUnicode(false)
+                .HasColumnName("url_image");
             entity.Property(e => e.UserEmail)
                 .HasMaxLength(100)
                 .HasColumnName("userEmail");
