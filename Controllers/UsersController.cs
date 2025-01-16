@@ -1,7 +1,9 @@
 ﻿using LoginMS.Custom;
 using LoginMS.Data;
+using LoginMS.Interfaces;
 using LoginMS.Models;
 using LoginMS.Models.DTOs;
+using LoginMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,10 +20,12 @@ namespace LoginMS.Controllers
     {
         private readonly AppDbContext _appDbContext;
         private readonly Utils _utils;
-        public UsersController(AppDbContext appDbContext, Utils utils)
+        private readonly IFileUploadService _uploadService;
+        public UsersController(AppDbContext appDbContext, Utils utils, IFileUploadService fileUploadService)
         {
             _appDbContext = appDbContext;
             _utils = utils;
+            _uploadService = fileUploadService;
         }
 
         [HttpGet]
@@ -34,7 +38,7 @@ namespace LoginMS.Controllers
 
         [HttpPost]
         [Route("CreateUser")]
-        public async Task<IActionResult> CreateUser(UserDTO user)
+        public async Task<IActionResult> CreateUser(UserDTO user, IFormFile? file)
         {
             // Search for Role
             var userRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_role).FirstOrDefaultAsync();
@@ -56,6 +60,13 @@ namespace LoginMS.Controllers
                 RolId = userRole.RolId,
                 RolIdaddional = userExtraRole?.RolId
             };
+
+            // Upload image if it's provided
+            if (file != null)
+            {
+                userModel.UrlImage = await UploadUserImageAsync(file);
+            }
+
             await _appDbContext.TfaUsers.AddAsync(userModel);
             await _appDbContext.SaveChangesAsync();
 
@@ -71,7 +82,7 @@ namespace LoginMS.Controllers
 
         [HttpPut]
         [Route("EditUser")]
-        public async Task<IActionResult> EditUser(int id, UserDTO user)
+        public async Task<IActionResult> EditUser(int id, UserDTO user, IFormFile? file)
         {
             // Search for User
             var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
@@ -95,10 +106,19 @@ namespace LoginMS.Controllers
             existingUser.UserEmail = user.vls_email;
             existingUser.RolId = userRole.RolId;
             existingUser.RolIdaddional = userExtraRole?.RolId;
+
+            // If a new password is provided, it's updated
             if (!string.IsNullOrEmpty(user.vls_password))
             {
                 existingUser.Contrasenia = _utils.encryptSHA256(user.vls_password);
             }
+
+            // If a new image is provided, the Image is uploaded and its URL property is updated
+            if (file != null)
+            {
+                existingUser.UrlImage = await UploadUserImageAsync(file);
+            }
+
 
             _appDbContext.TfaUsers.Update(existingUser);
             await _appDbContext.SaveChangesAsync();
@@ -120,6 +140,26 @@ namespace LoginMS.Controllers
             await _appDbContext.SaveChangesAsync();
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
+        }
+
+        public async Task<string> UploadUserImageAsync(IFormFile file)
+        {
+            // Verify if the file is valid
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentNullException("Archivo No Válido");
+            }
+
+            // Convert file into a byte array
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            byte[] fileBytes = memoryStream.ToArray();
+
+            // Call the Google Cloud Storage microservice to upload image
+            string imageUrl = await _uploadService.UploadImageAsync(fileBytes, file.FileName);
+
+            // Return the URL
+            return imageUrl;
         }
     }
 }
