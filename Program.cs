@@ -16,6 +16,15 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
+// Add Image Uploading Service
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+
+// Configure HTTP Client for Image Uploading Service
+builder.Services.AddHttpClient<FileUploadService>(client =>
+{
+    client.BaseAddress = new Uri("http://[CAMBIAR URL SEGÚN EL LOCALHOST]");
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
