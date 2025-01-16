@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using LoginMS.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LoginMS.Models;
+namespace LoginMS.Data;
 
 public partial class AppDbContext : DbContext
 {

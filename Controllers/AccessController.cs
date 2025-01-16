@@ -2,14 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LoginMS.Custom;
-using LoginMS.Models;
 using LoginMS.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using LoginMS.Data;
-using LoginMS.Services;
 using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using LoginMS.Interfaces;
 
 namespace LoginMS.Controllers
 {

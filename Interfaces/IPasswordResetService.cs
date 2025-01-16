@@ -1,4 +1,4 @@
-﻿namespace LoginMS.Services
+﻿namespace LoginMS.Interfaces
 {
     public interface IPasswordResetService
     {

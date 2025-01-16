@@ -1,4 +1,5 @@
 ﻿
+using LoginMS.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace LoginMS.Services

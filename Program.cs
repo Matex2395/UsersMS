@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using LoginMS.Custom;
-using LoginMS.Models;
 using LoginMS.Services;
 using Microsoft.OpenApi.Models;
+using LoginMS.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

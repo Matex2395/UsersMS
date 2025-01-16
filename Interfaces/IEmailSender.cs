@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 
-namespace LoginMS.Services
+namespace LoginMS.Interfaces
 {
     public interface IEmailSender
     {
