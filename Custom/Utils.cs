@@ -58,6 +58,7 @@ namespace LoginMS.Custom
                 new Claim(ClaimTypes.Email, model.UserEmail),
                 new Claim(ClaimTypes.Role, mainRole ?? ""),
                 new Claim(ClaimTypes.Role, extraRole ?? ""),
+                new Claim(ClaimTypes.Uri, model.UrlImage ?? ""),
                 new Claim("SessionId", sessionId),
                 new Claim("Timestamp", DateTime.UtcNow.ToString("o"))
             };
