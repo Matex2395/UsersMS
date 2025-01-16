@@ -20,7 +20,7 @@ namespace LoginMS.Services
             using var fileContent = new ByteArrayContent(fileBytes);
 
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(CONTENT_TYPE);
-            content.Add(fileContent, "file", "fileName");
+            content.Add(fileContent, "file", fileName);
 
             var response = await _httpClient.PostAsync($"/api/Images/UploadImage/{FOLDER_NAME}", content);
             if (response.IsSuccessStatusCode)
