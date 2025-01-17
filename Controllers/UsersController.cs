@@ -14,7 +14,7 @@ namespace LoginMS.Controllers
 {
     [Route("api/[controller]")]
     //Define Authentication type. In this case, it's not necessary.
-    [Authorize]
+    //[Authorize]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -38,7 +38,7 @@ namespace LoginMS.Controllers
 
         [HttpPost]
         [Route("CreateUser")]
-        public async Task<IActionResult> CreateUser(UserDTO user, IFormFile? file)
+        public async Task<IActionResult> CreateUser(UserDTO user)
         {
             // Search for Role
             var userRole = await _appDbContext.TfaRols.Where(u => u.RolName == user.vls_role).FirstOrDefaultAsync();
@@ -62,9 +62,9 @@ namespace LoginMS.Controllers
             };
 
             // Upload image if it's provided
-            if (file != null)
+            if (user.vlf_image != null)
             {
-                userModel.UrlImage = await UploadUserImageAsync(file);
+                userModel.UrlImage = await _uploadService.UploadUserImageAsync(user.vlf_image);
             }
 
             await _appDbContext.TfaUsers.AddAsync(userModel);
@@ -82,7 +82,7 @@ namespace LoginMS.Controllers
 
         [HttpPut]
         [Route("EditUser")]
-        public async Task<IActionResult> EditUser(int id, UserDTO user, IFormFile? file)
+        public async Task<IActionResult> EditUser(int id, UserDTO user)
         {
             // Search for User
             var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
@@ -114,9 +114,9 @@ namespace LoginMS.Controllers
             }
 
             // If a new image is provided, the Image is uploaded and its URL property is updated
-            if (file != null)
+            if (user.vlf_image != null)
             {
-                existingUser.UrlImage = await UploadUserImageAsync(file);
+                existingUser.UrlImage = await _uploadService.UploadUserImageAsync(user.vlf_image);
             }
 
 
@@ -140,26 +140,6 @@ namespace LoginMS.Controllers
             await _appDbContext.SaveChangesAsync();
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
-        }
-
-        public async Task<string> UploadUserImageAsync(IFormFile file)
-        {
-            // Verify if the file is valid
-            if (file == null || file.Length == 0)
-            {
-                throw new ArgumentNullException("Archivo No Válido");
-            }
-
-            // Convert file into a byte array
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            byte[] fileBytes = memoryStream.ToArray();
-
-            // Call the Google Cloud Storage microservice to upload image
-            string imageUrl = await _uploadService.UploadImageAsync(fileBytes, file.FileName);
-
-            // Return the URL
-            return imageUrl;
         }
     }
 }

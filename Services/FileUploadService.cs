@@ -1,4 +1,5 @@
 ﻿using LoginMS.Interfaces;
+using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -22,16 +23,14 @@ namespace LoginMS.Services
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(CONTENT_TYPE);
             content.Add(fileContent, "file", fileName);
 
-            var response = await _httpClient.PostAsync($"/api/Images/UploadImage/{FOLDER_NAME}", content);
+            var response = await _httpClient.PostAsync($"https://localhost:7145/api/Images/UploadImage/{FOLDER_NAME}", content);
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<dynamic>(responseContent);
-
-                if (result != null)
+                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                if (result != null && result!.url != null)
                 {
-                    // Return image URL
-                    return result.Url;
+                    return result!.url.ToString();
                 }
                 else
                 {
@@ -44,6 +43,26 @@ namespace LoginMS.Services
             {
                 throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
             }
+        }
+
+        public async Task<string> UploadUserImageAsync(IFormFile file)
+        {
+            // Verify if the file is valid
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentNullException("Archivo No Válido");
+            }
+
+            // Convert file into a byte array
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            byte[] fileBytes = memoryStream.ToArray();
+
+            // Call the Google Cloud Storage microservice to upload image
+            string imageUrl = await UploadImageAsync(fileBytes, file.FileName);
+
+            // Return the URL
+            return imageUrl;
         }
     }
 }

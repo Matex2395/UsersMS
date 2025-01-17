@@ -22,7 +22,12 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 // Configure HTTP Client for Image Uploading Service
 builder.Services.AddHttpClient<FileUploadService>(client =>
 {
-    client.BaseAddress = new Uri("http://[CAMBIAR URL SEGÚN EL LOCALHOST]");
+    //client.BaseAddress = new Uri("https://localhost:7145");
+
+    // SSL Certificate Configuration => Delete this on "Production"
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
 });
 
 builder.Services.AddControllers();
