@@ -23,7 +23,7 @@ namespace LoginMS.Services
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(CONTENT_TYPE);
             content.Add(fileContent, "file", fileName);
 
-            var response = await _httpClient.PostAsync($"https://localhost:7145/api/Images/UploadImage/{FOLDER_NAME}", content);
+            var response = await _httpClient.PostAsync($"http://localhost:7010/api/Images/UploadImage/{FOLDER_NAME}", content);
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();

@@ -82,7 +82,7 @@ namespace LoginMS.Controllers
 
         [HttpPut]
         [Route("EditUser")]
-        public async Task<IActionResult> EditUser(int id, UserDTO user)
+        public async Task<IActionResult> EditUser(int id, UpdateUserDTO user)
         {
             // Search for User
             var existingUser = await _appDbContext.TfaUsers.FindAsync(id);
@@ -141,5 +141,33 @@ namespace LoginMS.Controllers
 
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true });
         }
+
+        [HttpGet]
+        [Route("GetUserById/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            // Buscar usuario por ID
+            var user = await _appDbContext.TfaUsers
+                .Where(u => u.UsersId == id)
+                .Select(u => new
+                {
+                    u.UsersId,
+                    u.UserName,
+                    u.UserLastName,
+                    u.UserEmail,
+                    u.UrlImage,
+                    Role = _appDbContext.TfaRols.Where(r => r.RolId == u.RolId).Select(r => r.RolName).FirstOrDefault(),
+                    ExtraRole = _appDbContext.TfaRols.Where(r => r.RolId == u.RolIdaddional).Select(r => r.RolName).FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new { message = "Usuario no encontrado" });
+            }
+
+            return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, user });
+        }
+
     }
 }
