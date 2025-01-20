@@ -169,5 +169,29 @@ namespace LoginMS.Controllers
             return StatusCode(StatusCodes.Status200OK, new { isSuccess = true, user });
         }
 
+        [HttpGet]
+        [Route("GetUsersByRol/{role}")]
+        public async Task<IActionResult> GetUsersByRole(string role)
+        {
+            var foundRole = await _appDbContext.TfaRols.Where(r => r.RolName == role).FirstOrDefaultAsync();
+
+            if (foundRole == null)
+            {
+                return NotFound(new { isSuccess = false, message = "Rol no encontrado." });
+            }
+
+            var usersByRole = await _appDbContext.TfaUsers
+                                        .Where(u => u.RolId == foundRole.RolId)
+                                            .Select(u => new SearchBarUsersDTO
+                                            {
+                                                vli_id = u.UsersId,
+                                                vls_name = u.UserName,
+                                                vls_lastname = u.UserLastName,
+                                                vls_email = u.UserEmail
+                                            })
+                                            .ToListAsync();
+
+            return usersByRole.Any() ? Ok(usersByRole) : NotFound("No users found with the specified role.");
+        }
     }
 }
