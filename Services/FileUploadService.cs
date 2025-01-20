@@ -23,25 +23,20 @@ namespace LoginMS.Services
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(CONTENT_TYPE);
             content.Add(fileContent, "file", fileName);
 
-            var response = await _httpClient.PostAsync($"http://localhost:7010/api/Images/UploadImage/{FOLDER_NAME}", content);
-            if (response.IsSuccessStatusCode)
+            _httpClient.Timeout = TimeSpan.FromMinutes(5);
+
+            var response = await _httpClient.PostAsync($"https://localhost:7145/api/Images/UploadImage/{FOLDER_NAME}", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
+            if (result != null && result!.url != null)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<dynamic>(responseContent);
-                if (result != null && result!.url != null)
-                {
-                    return result!.url.ToString();
-                }
-                else
-                {
-                    throw new Exception($"La URL de la imagen no existe o no se ha generado: {result!.Url}");
-                }
-
-
+                return result!.url.ToString();
             }
             else
             {
-                throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
+                throw new Exception($"La URL de la imagen no existe o no se ha generado: {result!.Url}");
             }
         }
 

@@ -7,6 +7,7 @@ using LoginMS.Custom;
 using LoginMS.Services;
 using Microsoft.OpenApi.Models;
 using LoginMS.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,6 +114,11 @@ builder.Services.AddCors(options =>
     {
         app.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // Extended File Size limit up to 50 MB
 });
 
 var app = builder.Build();
