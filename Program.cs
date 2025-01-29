@@ -14,8 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddDistributedMemoryCache();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
-builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 // Add Image Uploading Service
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
